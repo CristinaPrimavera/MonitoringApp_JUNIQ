@@ -10,8 +10,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Route("")
 public class MainView extends VerticalLayout {
@@ -22,6 +25,7 @@ public class MainView extends VerticalLayout {
 
     public MainView() {
         add(new H1("URL Monitoring App"));
+        grid.setColumns("serverName", "statusCode");
         add(getForm(), grid);
         add(resetTable());
     }
@@ -65,10 +69,21 @@ public class MainView extends VerticalLayout {
     }
 
     private void fillUrlList() {
-        UrlModel url = new UrlModel(serverUrl.getValue());
-        UrlStatus responseResult = UrlValidator.getUrlStatusCode(url);
-        url.setStatusCode(responseResult);
-        urlList.add(url);
+        UrlModel urlModel = new UrlModel(serverUrl.getValue());
+
+        try {
+            URI uri = new URI(serverUrl.getValue());
+            urlModel.setServerName(!Objects.isNull(uri.getHost()) ? uri.getHost() : "Invalid");
+            runValidationTask(urlModel);
+        } catch (URISyntaxException e) {
+            urlModel.setServerName("Invalid");
+        }
+
+        urlList.add(urlModel);
+    }
+
+    private void runValidationTask(UrlModel urlModel) {
+        urlModel.setStatusCode(UrlValidator.getUrlStatusCode(urlModel));
     }
 
     private void refreshGrid() {
