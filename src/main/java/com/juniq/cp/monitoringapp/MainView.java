@@ -66,7 +66,7 @@ public class MainView extends VerticalLayout {
 
     private void fillUrlList() {
         UrlModel url = new UrlModel(serverUrl.getValue());
-        String responseResult = UrlValidator.getUrlStatusCode(url);
+        UrlStatus responseResult = UrlValidator.getUrlStatusCode(url);
         url.setStatusCode(responseResult);
         urlList.add(url);
     }

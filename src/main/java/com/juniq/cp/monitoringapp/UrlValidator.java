@@ -7,22 +7,22 @@ import java.net.URL;
 
 public class UrlValidator {
 
-    public static String getUrlStatusCode(UrlModel urlModel) {
+    public static UrlStatus getUrlStatusCode(UrlModel urlModel) {
         int responseCode;
         try {
             URL url = new URL(urlModel.getServerUrl());
             HttpURLConnection huc = (HttpURLConnection) url.openConnection();
             responseCode = huc.getResponseCode();
         } catch (MalformedURLException e) {
-            return "URL malformed";
+            return UrlStatus.URL_MALFORMED;
         } catch (IOException e) {
-            return "Failed to fetch URL";
+            return UrlStatus.FAILED_TO_FETCH_URL;
         }
 
         return switch (responseCode) {
-            case HttpURLConnection.HTTP_OK -> "Successful connection";
-            case HttpURLConnection.HTTP_NOT_FOUND -> "URL not found";
-            default -> "Status code differs from 200 or 404";
+            case HttpURLConnection.HTTP_OK -> UrlStatus.OK;
+            case HttpURLConnection.HTTP_NOT_FOUND -> UrlStatus.URL_NOT_FOUND;
+            default -> UrlStatus.HTTP_STATUS_NOT_200_OR_404;
         };
     }
 }

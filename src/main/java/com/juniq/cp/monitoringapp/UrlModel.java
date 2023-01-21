@@ -3,7 +3,7 @@ package com.juniq.cp.monitoringapp;
 public class UrlModel {
 
     private String serverUrl;
-    private String statusCode;
+    private UrlStatus statusCode;
 
     public UrlModel(String serverUrl) {
         this.serverUrl = serverUrl;
@@ -14,10 +14,10 @@ public class UrlModel {
     }
 
     public String getStatusCode() {
-        return statusCode;
+        return statusCode.getLabel();
     }
 
-    public void setStatusCode(String statusCode) {
+    public void setStatusCode(UrlStatus statusCode) {
         this.statusCode = statusCode;
     }
 }
