@@ -5,7 +5,8 @@ public enum UrlStatus {
     FAILED_TO_FETCH_URL("Failed to fetch URL"),
     OK("OK"),
     URL_NOT_FOUND("URL not found"),
-    HTTP_STATUS_NOT_200_OR_404("HTTP status not 200 or 404");
+    HTTP_STATUS_NOT_200_OR_404("HTTP status not 200 or 404"),
+    FETCHING("FETCHING");
 
     public String getLabel() {
         return label;

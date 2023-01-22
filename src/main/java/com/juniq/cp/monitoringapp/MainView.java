@@ -8,18 +8,18 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Route("")
 public class MainView extends VerticalLayout {
 
     private TextField serverUrl = new TextField("Enter a server URL:");
+    private IntegerField timeDelay = new IntegerField("Time delay in seconds");
     private Grid<UrlModel> grid = new Grid<>(UrlModel.class);
     private List<UrlModel> urlList = new ArrayList<>();
 
@@ -27,37 +27,31 @@ public class MainView extends VerticalLayout {
         add(new H1("URL Monitoring App"));
         grid.setColumns("serverName", "statusCode");
         add(getForm(), grid);
-        add(resetTable());
-    }
-
-    private Component resetTable() {
-        var layout = new HorizontalLayout();
-        var resetButton = new Button("Reset table");
-        resetButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        layout.add(resetButton);
-        onResetButtonEvent(resetButton);
-
-        return layout;
-    }
-
-    private void onResetButtonEvent(Button resetButton) {
-        resetButton.addClickListener(click -> {
-            urlList.clear();
-            refreshGrid();
-            serverUrl.clear();
-        });
     }
 
     private Component getForm() {
         var layout = new HorizontalLayout();
         layout.setAlignItems(Alignment.BASELINE);
+        Button addButton = getAddButton();
+
+        timeDelay.setMin(0);
+        timeDelay.setMax(60);
+        timeDelay.setValue(2);
+        timeDelay.setStepButtonsVisible(true);
+        timeDelay.setWidthFull();
+
+        layout.add(serverUrl, timeDelay, addButton);
+
+        return layout;
+    }
+
+    private Button getAddButton() {
         var addButton = new Button("Add");
         addButton.addClickShortcut(Key.ENTER);
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        layout.add(serverUrl, addButton);
         onAddButtonEvent(addButton);
 
-        return layout;
+        return addButton;
     }
 
     private void onAddButtonEvent(Button addButton) {
@@ -74,6 +68,7 @@ public class MainView extends VerticalLayout {
         try {
             URI uri = new URI(serverUrl.getValue());
             urlModel.setServerName(!Objects.isNull(uri.getHost()) ? uri.getHost() : "Invalid");
+            urlModel.setStatusCode(UrlStatus.FETCHING);
             runValidationTask(urlModel);
         } catch (URISyntaxException e) {
             urlModel.setServerName("Invalid");
@@ -83,7 +78,20 @@ public class MainView extends VerticalLayout {
     }
 
     private void runValidationTask(UrlModel urlModel) {
-        urlModel.setStatusCode(UrlValidator.getUrlStatusCode(urlModel));
+        Timer timer = new Timer("Timer");
+        long delay = timeDelay.getValue() * 1000;
+        timer.schedule(createValidationTask(urlModel), delay);
+    }
+
+    private TimerTask createValidationTask(UrlModel urlModel) {
+        return new TimerTask() {
+            public void run() {
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    urlModel.setStatusCode(UrlValidator.getUrlStatusCode(urlModel));
+                    refreshGrid();
+                }));
+            }
+        };
     }
 
     private void refreshGrid() {

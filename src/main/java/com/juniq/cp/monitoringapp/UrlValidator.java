@@ -13,16 +13,16 @@ public class UrlValidator {
             URL url = new URL(urlModel.getServerUrl());
             HttpURLConnection huc = (HttpURLConnection) url.openConnection();
             responseCode = huc.getResponseCode();
+
+            return switch (responseCode) {
+                case HttpURLConnection.HTTP_OK -> UrlStatus.OK;
+                case HttpURLConnection.HTTP_NOT_FOUND -> UrlStatus.URL_NOT_FOUND;
+                default -> UrlStatus.HTTP_STATUS_NOT_200_OR_404;
+            };
         } catch (MalformedURLException e) {
             return UrlStatus.URL_MALFORMED;
         } catch (IOException e) {
             return UrlStatus.FAILED_TO_FETCH_URL;
         }
-
-        return switch (responseCode) {
-            case HttpURLConnection.HTTP_OK -> UrlStatus.OK;
-            case HttpURLConnection.HTTP_NOT_FOUND -> UrlStatus.URL_NOT_FOUND;
-            default -> UrlStatus.HTTP_STATUS_NOT_200_OR_404;
-        };
     }
 }
