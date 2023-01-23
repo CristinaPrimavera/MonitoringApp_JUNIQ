@@ -7,12 +7,13 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -57,6 +58,11 @@ public class MainView extends VerticalLayout {
 
     private void onAddButtonEvent(Button addButton) {
         addButton.addClickListener(click -> {
+            if (timeDelay.getValue() < 0) {
+                Notification.show("Time value has to be higher than 0!");
+                return;
+            }
+
             fillUrlList();
             refreshGrid();
             serverUrl.clear();
@@ -64,18 +70,18 @@ public class MainView extends VerticalLayout {
     }
 
     private void fillUrlList() {
-        UrlModel urlModel = new UrlModel(serverUrl.getValue());
+        UrlModel urlModel = null;
 
         try {
-            URI uri = new URI(serverUrl.getValue());
-            urlModel.setServerName(!Objects.isNull(uri.getHost()) ? uri.getHost() : "Invalid URL");
-            urlModel.setStatusCode(UrlStatus.FETCHING);
+            urlModel = new UrlModel(serverUrl.getValue());
             runValidationTask(urlModel);
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | MalformedURLException e) {
+            urlModel = new UrlModel();
             urlModel.setServerName("Invalid URL entered");
+            urlModel.setStatusCode(UrlStatus.URL_MALFORMED);
+        } finally {
+            urlList.add(urlModel);
         }
-
-        urlList.add(urlModel);
     }
 
     private void runValidationTask(UrlModel urlModel) {
