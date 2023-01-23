@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -19,12 +20,13 @@ import java.util.*;
 public class MainView extends VerticalLayout {
 
     private TextField serverUrl = new TextField("Enter a server URL:");
-    private IntegerField timeDelay = new IntegerField("Time delay in seconds");
+    private IntegerField timeDelay = new IntegerField("Enter time delay (in seconds)");
     private Grid<UrlModel> grid = new Grid<>(UrlModel.class);
     private List<UrlModel> urlList = new ArrayList<>();
 
     public MainView() {
         add(new H1("URL Monitoring App"));
+        add(new H4("Enter a valid URL and a time delay for processing it."));
         grid.setColumns("serverName", "statusCode");
         add(getForm(), grid);
     }
@@ -33,12 +35,11 @@ public class MainView extends VerticalLayout {
         var layout = new HorizontalLayout();
         layout.setAlignItems(Alignment.BASELINE);
         Button addButton = getAddButton();
-
         timeDelay.setMin(0);
-        timeDelay.setMax(60);
-        timeDelay.setValue(2);
+        timeDelay.setMax(90);
+        timeDelay.setValue(0);
         timeDelay.setStepButtonsVisible(true);
-        timeDelay.setWidthFull();
+        timeDelay.setWidth("212px");
 
         layout.add(serverUrl, timeDelay, addButton);
 
@@ -46,7 +47,7 @@ public class MainView extends VerticalLayout {
     }
 
     private Button getAddButton() {
-        var addButton = new Button("Add");
+        var addButton = new Button("Check URL");
         addButton.addClickShortcut(Key.ENTER);
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         onAddButtonEvent(addButton);
@@ -67,11 +68,11 @@ public class MainView extends VerticalLayout {
 
         try {
             URI uri = new URI(serverUrl.getValue());
-            urlModel.setServerName(!Objects.isNull(uri.getHost()) ? uri.getHost() : "Invalid");
+            urlModel.setServerName(!Objects.isNull(uri.getHost()) ? uri.getHost() : "Invalid URL");
             urlModel.setStatusCode(UrlStatus.FETCHING);
             runValidationTask(urlModel);
         } catch (URISyntaxException e) {
-            urlModel.setServerName("Invalid");
+            urlModel.setServerName("Invalid URL entered");
         }
 
         urlList.add(urlModel);
